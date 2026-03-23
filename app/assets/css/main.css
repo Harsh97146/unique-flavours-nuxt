@@ -1,0 +1,32 @@
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
+
+/* Basic resets and base styles */
+html {
+  font-family: 'Montserrat', sans-serif;
+  scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  @apply text-gray-800 bg-white;
+}
+
+/* Transitions for all interactive elements */
+a, button, input {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+/* Custom rounded corner utility */
+.rounded-brand {
+  border-radius: 15px;
+}
+
+.rounded-brand-lg {
+  border-radius: 20px;
+}
+
+/* Hover effects for cards */
+.hover-lift {
+  @apply hover:-translate-y-1 hover:shadow-brand-hover transition-all duration-300;
+}
