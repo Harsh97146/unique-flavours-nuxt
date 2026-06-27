@@ -1,12 +1,18 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   compatibilityDate: '2025-07-15',
-  devtools: { enabled: true },
   modules: [
     '@nuxtjs/tailwindcss',
     '@pinia/nuxt',
   ],
   css: ['~/assets/css/main.css'],
+  runtimeConfig: {
+    public: {
+      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:5000',
+      siteUrl: process.env.NUXT_PUBLIC_SITE_URL || 'http://localhost:3000',
+      googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || 'your-google-client-id.apps.googleusercontent.com'
+    }
+  },
 
 
   app: {
@@ -19,8 +25,12 @@ export default defineNuxtConfig({
       link: [
         { rel: 'preconnect', href: 'https://fonts.googleapis.com' },
         { rel: 'preconnect', href: 'https://fonts.gstatic.com', crossorigin: '' },
-        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap' },
+        { rel: 'stylesheet', href: 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap' },
       ],
+      script: [
+        { src: 'https://sdk.cashfree.com/js/v3/cashfree.js' },
+        { src: 'https://accounts.google.com/gsi/client', async: true, defer: true }
+      ]
     },
   },
 })

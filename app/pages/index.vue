@@ -1,43 +1,127 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onUnmounted } from 'vue';
-import { ArrowRight, Leaf, Heart, Truck, ShieldCheck, Star, Play, CheckCircle2, Sprout, Globe, ChevronLeft, ChevronRight } from 'lucide-vue-next'
-import { products } from '~/data/products'
+import { useProductStore } from '~/stores/products'
+import { useCartStore } from '~/stores/cart'
+import {
+  ArrowRight, Leaf, Heart, Truck, ShieldCheck, Star, CheckCircle2,
+  Sprout, Globe, ChevronLeft, ChevronRight, Play, Zap, Users, Award,
+  Package, TreePine, Quote, Gift, FlaskConical, Wheat, Cherry, Shield, Sparkles
+} from 'lucide-vue-next'
 
-const featuredProducts = products.filter((p) => p.featured)
+const productStore = useProductStore()
+const cartStore = useCartStore()
+const { $swal } : any = useNuxtApp()
 
-
-const concerns = [
-  { id: 1, name: 'Immunity', icon: ShieldCheck },
-  { id: 2, name: 'Skin Care', icon: Heart },
-  { id: 3, name: 'Weight Loss', icon: Leaf },
-  { id: 4, name: 'Digestion', icon: Sprout },
-]
-
-const activeConcern = ref('Immunity')
-
-const reviews = [
-  { id: 1, name: 'Priya Sharma', location: 'Mumbai', rating: 5, comment: "The Jamun frozen fruit has become my family's favorite breakfast snack. It feels so pure and revitalizing to know it's 100% natural.", image: 'https://i.pravatar.cc/150?u=priya' },
-  { id: 2, name: 'Rahul Patel', location: 'Ahmedabad', rating: 5, comment: 'Absolutely love the mango pulp! It\'s so pure and natural, tastes just like fresh Alphanzo mangoes.', image: 'https://i.pravatar.cc/150?u=rahul' },
-  { id: 3, name: 'Anjali Desai', location: 'Pune', rating: 5, comment: 'Finally found 100% natural fruit pulps without any chemicals! The Jamun health benefits are real.', image: 'https://i.pravatar.cc/150?u=anjali' },
-]
-
-const currentReviewIndex = ref(0)
-const nextReview = () => {
-  currentReviewIndex.value = (currentReviewIndex.value + 1) % reviews.length
-}
-const prevReview = () => {
-  currentReviewIndex.value = (currentReviewIndex.value - 1 + reviews.length) % reviews.length
+const handleAddToCart = (product: any) => {
+  cartStore.addToCart(product, 1)
+  $swal.toast('Added to cart', 'success', product.name)
 }
 
-const currentReview = computed(() => {
-  return reviews[currentReviewIndex.value] || reviews[0]
+onMounted(async () => {
+  await productStore.fetchProducts()
+  startHeroSlider()
+  startMarquee()
+  animateStats()
+  startReviewSlider()
 })
 
-let reviewInterval: any = null
+onUnmounted(() => {
+  if (heroInterval) clearInterval(heroInterval)
+  if (reviewInterval) clearInterval(reviewInterval)
+})
+
+const featuredProducts = computed(() => productStore.products.filter((p: any) => p.isFeatured))
+const allProducts = computed(() => productStore.products)
+
+// ─── ANNOUNCEMENT MARQUEE ──────────────────────────────────────────────────
+const marqueeItems = [
+  { icon: Leaf, text: '100% Natural & Preservative Free' },
+  { icon: Truck, text: 'Free Delivery on Orders Above ₹499' },
+  { icon: Wheat, text: 'Directly From Tribal Farmers' },
+  { icon: Star, text: '2000+ Happy Customers' },
+  { icon: Gift, text: 'Gift Packs Available' },
+  { icon: FlaskConical, text: 'Lab Tested & FSSAI Certified' },
+]
+
+// ─── HERO SLIDER ──────────────────────────────────────────────────────────
+const heroSlides = [
+  {
+    label: 'Pure from the Forest',
+    title: 'Savor the Taste of',
+    highlight: 'Pure Nature',
+    subtitle: 'Experience 100% authentic, farm-fresh fruit pulps and natural wellness essentials. No chemicals, just raw goodness of the wild.',
+    cta: 'Shop Now',
+    bg: 'from-[#3D1D5F] to-[#50267C]',
+    image: '/images/WhatsApp Image 2026-03-26 at 10.39.08 PM (1).jpeg',
+  },
+  {
+    label: 'Empowering Communities',
+    title: '15 Million+ Trees',
+    highlight: 'Saved & Counting',
+    subtitle: 'Every purchase supports tribal women farmers and helps reduce our carbon footprint across rural India.',
+    cta: 'Our Mission',
+    bg: 'from-[#4A7A20] to-[#749D3A]',
+    image: '/images/WhatsApp Image 2026-03-26 at 10.39.09 PM (2).jpeg',
+  },
+  {
+    label: 'Naturally Wellness',
+    title: 'Wild Harvested',
+    highlight: 'Tribal Goodness',
+    subtitle: 'From Jamun pulps to Alphonso mangoes – each product is handpicked, cold-processed, and delivered to your doorstep fresh.',
+    cta: 'Explore Products',
+    bg: 'from-[#1A3A5F] to-[#2D6A9F]',
+    image: '/images/WhatsApp Image 2026-03-26 at 10.39.10 PM (2).jpeg',
+  },
+]
+
+const currentHeroSlide = ref(0)
+let heroInterval: any = null
+
+const startHeroSlider = () => {
+  heroInterval = setInterval(() => {
+    currentHeroSlide.value = (currentHeroSlide.value + 1) % heroSlides.length
+  }, 5000)
+}
+
+const goToSlide = (i: number) => {
+  currentHeroSlide.value = i
+  clearInterval(heroInterval)
+  startHeroSlider()
+}
+
+const marqueeStart = () => {}
+
+// ─── CATEGORY QUICK LINKS ─────────────────────────────────────────────────
+const categoryLinks = [
+  { name: 'Fruit Pulps', icon: Cherry, href: '/products' },
+  { name: 'Wellness', icon: Leaf, href: '/products' },
+  { name: 'Immunity', icon: Shield, href: '/products' },
+  { name: 'Combos', icon: Package, href: '/products' },
+  { name: 'Gifting', icon: Sparkles, href: '/products' },
+]
+
+// ─── SHOP BY CONCERN TABS ─────────────────────────────────────────────────
+const concerns = [
+  { id: 'immunity', name: 'Immunity', icon: ShieldCheck, color: 'text-emerald-600' },
+  { id: 'skincare', name: 'Skin Care', icon: Heart, color: 'text-pink-500' },
+  { id: 'weightloss', name: 'Weight Loss', icon: Leaf, color: 'text-brand-green' },
+  { id: 'digestion', name: 'Digestion', icon: Sprout, color: 'text-amber-600' },
+]
+const activeConcern = ref('immunity')
+
+// ─── BENEFITS ─────────────────────────────────────────────────────────────
+const benefits = [
+  'Rich in Antioxidants', 'Immunity Boosting', 'Blood Sugar Support',
+  'Heart Healthy', 'Digestive Aid', 'Weight Management',
+  'Vitamin C Rich', 'Detoxifying', 'Anti-inflammatory', 'Energy Boosting'
+]
+
+// ─── IMPACT STATS ─────────────────────────────────────────────────────────
 const impactStats = ref([
-  { label: 'Trees Saved', current: 0, target: 15, suffix: ' Million+', icon: Leaf },
-  { label: 'Farmers Empowered', current: 0, target: 500, suffix: '+', icon: Heart },
-  { label: 'Natural Products', current: 0, target: 100, suffix: '%', icon: CheckCircle2 },
+  { label: 'Trees Saved', current: 0, target: 15, suffix: 'M+', icon: TreePine },
+  { label: 'Tribal Farmers', current: 0, target: 500, suffix: '+', icon: Users },
+  { label: 'Happy Customers', current: 0, target: 2000, suffix: '+', icon: Award },
+  { label: '100% Natural', current: 0, target: 100, suffix: '%', icon: CheckCircle2 },
 ])
 
 const animateStats = () => {
@@ -58,86 +142,199 @@ const animateStats = () => {
   })
 }
 
-onMounted(() => {
-  animateStats()
+// ─── REVIEWS ──────────────────────────────────────────────────────────────
+const reviews = [
+  { id: 1, name: 'Priya Sharma', location: 'Mumbai', rating: 5, comment: 'The Jamun pulp has become my morning ritual — I add it to smoothies and it tastes absolutely divine. Truly wild-harvested freshness!', image: 'https://i.pravatar.cc/150?u=priya' },
+  { id: 2, name: 'Rahul Patel', location: 'Ahmedabad', rating: 5, comment: 'Alphonso Mango Pulp is pure liquid gold! No preservatives, real taste, delivered in perfect condition. Will always order from Unique Flavours.', image: 'https://i.pravatar.cc/150?u=rahul' },
+  { id: 3, name: 'Anjali Desai', location: 'Pune', rating: 5, comment: 'Finally found 100% natural fruit pulps without chemicals. The Sitaphal pulp is out of this world — creamy and naturally sweet!', image: 'https://i.pravatar.cc/150?u=anjali' },
+  { id: 4, name: 'Kiran Nair', location: 'Bangalore', rating: 5, comment: 'Buying from Unique Flavours means supporting tribal communities. The quality is exceptional and every purchase feels meaningful.', image: 'https://i.pravatar.cc/150?u=kiran' },
+]
+
+const currentReviewSlide = ref(0)
+let reviewInterval: any = null
+
+const startReviewSlider = () => {
   reviewInterval = setInterval(() => {
-    nextReview()
-  }, 3000)
-})
+    currentReviewSlide.value = (currentReviewSlide.value + 1) % reviews.length
+  }, 4000)
+}
 
-onUnmounted(() => {
-  if (reviewInterval) clearInterval(reviewInterval)
-})
+const storyImages = [
+  '/images/WhatsApp Image 2026-03-26 at 10.39.07 PM.jpeg',
+  '/images/WhatsApp Image 2026-03-26 at 10.39.08 PM.jpeg',
+  '/images/WhatsApp Image 2026-03-26 at 10.39.09 PM (1).jpeg',
+  '/images/WhatsApp Image 2026-03-26 at 10.39.09 PM.jpeg',
+]
 
-useHead({ 
+const startMarquee = () => {}
+
+useHead({
   title: 'Unique Flavours | Pure & Natural Tribal Wellness',
   meta: [
-    { name: 'description', content: 'Authentic 100% natural fruit pulps and wellness products sourced directly from tribal farmers.' }
+    { name: 'description', content: 'Authentic 100% natural fruit pulps and wellness products sourced directly from tribal farmers. Jamun, Mango, Sitaphal pulps — no chemicals, just pure goodness.' }
   ]
 })
 </script>
 
 <template>
   <div class="overflow-x-hidden">
-    <!-- Hero Slider Section -->
-    <section class="relative bg-brand-lavender min-h-[600px] flex items-center pt-8 pb-20">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full">
-        <div class="grid lg:grid-cols-12 gap-12 items-center">
-          <!-- Text Content -->
-          <div class="lg:col-span-7 z-10 space-y-8 animate-in fade-in slide-in-from-left-8 duration-700">
-            <div class="inline-flex items-center gap-2 bg-brand-green/10 text-brand-green px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-widest ring-1 ring-brand-green/20">
-              <span class="relative flex h-2 w-2">
-                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-brand-green opacity-75"></span>
-                <span class="relative inline-flex rounded-full h-2 w-2 bg-brand-green"></span>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 1. ANNOUNCEMENT MARQUEE BAR -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <div class="bg-brand-green text-white py-2 overflow-hidden relative border-b border-brand-green-dark/30">
+      <div class="marquee-track flex whitespace-nowrap animate-marquee text-xs sm:text-sm font-medium tracking-normal">
+        <span v-for="(item, i) in [...marqueeItems, ...marqueeItems, ...marqueeItems]" :key="i" class="mx-8 shrink-0 inline-flex items-center gap-2">
+          <component :is="item.icon" class="w-4 h-4 opacity-90 shrink-0" stroke-width="1.75" />
+          {{ item.text }}
+        </span>
+      </div>
+    </div>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 2. HERO SLIDER -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="relative h-[600px] md:h-[680px] overflow-hidden">
+      <!-- Slides -->
+      <Transition name="hero-fade" mode="out-in">
+        <div
+          :key="currentHeroSlide"
+          class="absolute inset-0 flex items-center"
+          :class="`bg-gradient-to-r ${heroSlides[currentHeroSlide].bg}`"
+        >
+          <!-- Background image -->
+          <div class="absolute inset-0 overflow-hidden">
+            <img
+              :src="heroSlides[currentHeroSlide].image"
+              class="w-full h-full object-cover opacity-20 scale-105"
+              alt="Hero background"
+            />
+            <div class="absolute inset-0 bg-gradient-to-r from-black/60 via-black/30 to-transparent" />
+          </div>
+
+          <!-- Content -->
+          <div class="relative z-10 max-w-7xl mx-auto px-6 lg:px-8 w-full">
+            <div class="max-w-2xl">
+              <span class="inline-flex items-center gap-2 text-white/80 text-xs font-bold uppercase tracking-widest mb-6">
+                <span class="w-8 h-px bg-white/60" />
+                {{ heroSlides[currentHeroSlide].label }}
               </span>
-              Directly from tribal farmers
+              <h1 class="text-5xl md:text-7xl font-black text-white leading-[1.05] mb-6">
+                {{ heroSlides[currentHeroSlide].title }}<br />
+                <span class="text-brand-green">{{ heroSlides[currentHeroSlide].highlight }}</span>
+              </h1>
+              <p class="text-white/80 text-lg md:text-xl font-medium leading-relaxed mb-10 max-w-xl">
+                {{ heroSlides[currentHeroSlide].subtitle }}
+              </p>
+              <div class="flex flex-wrap items-center gap-4">
+                <NuxtLink to="/products">
+                  <button class="bg-white text-brand-purple px-8 py-4 rounded-full font-black text-base hover:bg-brand-green hover:text-white transition-all shadow-2xl flex items-center gap-2 group">
+                    {{ heroSlides[currentHeroSlide].cta }}
+                    <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                  </button>
+                </NuxtLink>
+                <NuxtLink to="/about">
+                  <button class="border-2 border-white/40 text-white px-8 py-4 rounded-full font-bold text-base hover:border-white hover:bg-white/10 transition-all">
+                    Learn More
+                  </button>
+                </NuxtLink>
+              </div>
             </div>
-            
-            <h1 class="text-5xl md:text-7xl font-extrabold text-brand-purple leading-[1.1]">
-              Savor the Taste <br/>
-              <span class="text-brand-green">of Pure Nature</span>
-            </h1>
-            
-            <p class="text-lg md:text-xl text-gray-600 max-w-xl leading-relaxed font-medium">
-              Experience 100% authentic, farm-fresh fruit pulps and natural wellness essentials. No chemicals, just the raw goodness of the wild.
-            </p>
-            
-            <div class="flex flex-wrap items-center gap-6">
+          </div>
+        </div>
+      </Transition>
+
+      <!-- Slider Dots -->
+      <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3 z-20">
+        <button
+          v-for="(_, i) in heroSlides"
+          :key="i"
+          @click="goToSlide(i)"
+          class="transition-all duration-300 rounded-full"
+          :class="i === currentHeroSlide ? 'w-8 h-3 bg-white' : 'w-3 h-3 bg-white/40 hover:bg-white/70'"
+        />
+      </div>
+
+      <!-- Bottom wave -->
+      <div class="absolute bottom-0 left-0 right-0 z-10">
+        <svg viewBox="0 0 1440 60" fill="none" xmlns="http://www.w3.org/2000/svg" class="w-full">
+          <path d="M0 60L1440 60L1440 20C1200 60 960 0 720 20C480 40 240 0 0 20L0 60Z" fill="white"/>
+        </svg>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 3. WELCOME + CATEGORY QUICK LINKS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="bg-white py-16 -mt-1">
+      <div class="max-w-4xl mx-auto px-6 text-center">
+        <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Welcome to Unique Flavours</p>
+        <h2 class="text-4xl md:text-5xl font-black text-brand-purple mb-5 leading-tight">
+          Nature's Finest,<br />
+          <span class="text-brand-green">Straight to Your Table</span>
+        </h2>
+        <p class="text-gray-500 text-lg font-medium leading-relaxed max-w-2xl mx-auto mb-10">
+          We are on a mission to connect you with authentic tribal produce. Pure fruit pulps, wellness essentials, and nature's goodness — handpicked, lab-tested, and delivered fresh.
+        </p>
+        <!-- Category Pill Links -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <NuxtLink
+            v-for="cat in categoryLinks"
+            :key="cat.name"
+            :to="cat.href"
+            class="flex items-center gap-2 px-6 py-3 rounded-full border-2 border-brand-purple/20 text-brand-purple font-bold text-sm hover:bg-brand-purple hover:text-white hover:border-brand-purple transition-all shadow-sm hover:shadow-lg group"
+          >
+            <component :is="cat.icon" class="w-4 h-4 group-hover:text-white transition-colors" stroke-width="1.75" />
+            {{ cat.name }}
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 4. FEATURED PROMO BANNER -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-10 bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="relative bg-gradient-to-r from-[#EDE7F6] to-[#F3E5F5] rounded-3xl overflow-hidden p-10 md:p-14">
+          <!-- Decorative circles -->
+          <div class="absolute top-0 right-0 w-80 h-80 bg-brand-purple/5 rounded-full -mr-20 -mt-20" />
+          <div class="absolute bottom-0 left-0 w-60 h-60 bg-brand-green/5 rounded-full -ml-20 -mb-20" />
+
+          <div class="relative grid md:grid-cols-2 gap-10 items-center">
+            <!-- Left content -->
+            <div class="space-y-6">
+              <span class="text-brand-purple/60 text-xs font-black uppercase tracking-widest">Bestselling Collection</span>
+              <h2 class="text-4xl md:text-5xl font-black text-brand-purple leading-tight">
+                Tribal Harvest<br />
+                <span class="text-brand-green">Fruit Pulp Bundle</span>
+              </h2>
+              <p class="text-gray-600 font-medium text-lg leading-relaxed">
+                Bring home the essence of the wild with our curated fruit pulp collection. Crafted from handpicked, high-quality fruits — each pack serves pure nourishment with zero additives.
+              </p>
               <NuxtLink to="/products">
-                <button class="bg-brand-purple hover:bg-brand-purple-dark text-white px-10 py-5 rounded-brand-lg font-bold text-lg shadow-xl shadow-brand-purple/20 flex items-center gap-3 active:scale-95 transition-all">
-                  Shop Best-Sellers <ArrowRight class="w-6 h-6" />
+                <button class="bg-brand-purple text-white px-10 py-4 mt-4 rounded-full font-black text-base hover:bg-brand-purple-dark transition-all shadow-xl shadow-brand-purple/20 flex items-center gap-2 group w-fit">
+                  ORDER NOW
+                  <ArrowRight class="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </button>
               </NuxtLink>
-              <div class="flex -space-x-3 overflow-hidden">
-                <img v-for="i in 3" :key="i" class="inline-block h-12 w-12 rounded-full ring-4 ring-white object-cover" :src="`https://i.pravatar.cc/150?u=${i}`" alt="" />
-                <div class="flex items-center justify-center h-12 w-12 rounded-full ring-4 ring-white bg-brand-green text-white text-xs font-bold">+2k</div>
-              </div>
-              <p class="text-sm font-bold text-brand-purple/60 uppercase tracking-wider">Trusted by 2000+ Customers</p>
             </div>
-          </div>
-          
-          <!-- Image Content -->
-          <div class="lg:col-span-5 relative group animate-in fade-in zoom-in-95 duration-700">
-            <div class="absolute -inset-4 bg-brand-purple/5 rounded-[40px] rotate-3 group-hover:rotate-1 transition-transform border border-brand-purple/10"></div>
-            <div class="relative rounded-[32px] overflow-hidden shadow-2xl border-4 border-white aspect-[4/5] md:aspect-square">
-              <img 
-                src="/images/hero-banner.png" 
-                alt="Natural Fruit Delights" 
-                class="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700" 
-              />
-              <div class="absolute inset-0 bg-gradient-to-t from-brand-purple/40 to-transparent"></div>
-              
-              <!-- Floating Badge -->
-              <div class="absolute bottom-6 right-6 bg-white/90 backdrop-blur-md p-5 rounded-brand shadow-xl border border-white animate-bounce-slow">
-                <div class="flex items-center gap-4">
-                  <div class="w-12 h-12 bg-brand-green rounded-full flex items-center justify-center text-white shadow-lg">
-                    <Globe class="w-6 h-6" />
-                  </div>
-                  <div>
-                    <h4 class="text-xl font-extrabold text-brand-purple">100%</h4>
-                    <p class="text-[10px] font-bold text-brand-green uppercase tracking-widest">Global Purity</p>
-                  </div>
-                </div>
+            <!-- Right image -->
+            <div class="relative flex justify-center">
+              <div class="w-72 h-72 md:w-80 md:h-80 rounded-3xl overflow-hidden shadow-2xl ring-4 ring-white">
+                <img
+                  src="/images/WhatsApp Image 2026-03-26 at 10.39.10 PM (1).jpeg"
+                  class="w-full h-full object-cover"
+                  alt="Fruit Bundle"
+                />
+              </div>
+              <!-- Floating badge -->
+              <div class="absolute -top-4 -right-4 bg-brand-green text-white rounded-2xl px-4 py-2 text-xs font-black uppercase tracking-widest shadow-xl rotate-6 inline-flex items-center gap-1.5">
+                Best Seller <Star class="w-3.5 h-3.5 fill-white" stroke-width="1.75" />
+              </div>
+              <div class="absolute -bottom-4 -left-4 bg-white rounded-2xl px-5 py-3 shadow-xl border border-gray-100">
+                <p class="text-brand-purple font-black text-lg">₹380</p>
+                <p class="text-gray-400 text-xs font-semibold">Starting from</p>
               </div>
             </div>
           </div>
@@ -145,336 +342,411 @@ useHead({
       </div>
     </section>
 
-
-    <!-- Welcome Section (About Preview) -->
-    <section class="py-24 bg-white">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="grid lg:grid-cols-2 gap-20 items-center">
-          <div class="relative">
-            <div class="grid grid-cols-2 gap-4">
-              <img src="/images/strawberry-pulp.jpg" class="rounded-3xl h-64 w-full object-cover mt-12 shadow-2xl border-4 border-white" alt="Fresh Strawberry Pulp" />
-              <img src="/images/tribal-farming.png" class="rounded-3xl h-80 w-full object-cover -mt-12 shadow-2xl border-4 border-white" alt="Tribal Farming" />
-            </div>
-            <!-- Trust Badge -->
-            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-40 h-40 bg-brand-green/20 backdrop-blur-sm rounded-full flex items-center justify-center p-4">
-              <div class="w-full h-full bg-brand-green text-white rounded-full flex flex-col items-center justify-center text-center p-2 shadow-2xl">
-                <span class="text-2xl font-black">15+</span>
-                <span class="text-[8px] font-bold uppercase tracking-widest">Years of Trust</span>
-              </div>
-            </div>
-          </div>
-          
-          <div class="space-y-8">
-            <h2 class="text-sm font-black text-brand-green uppercase tracking-[0.3em] mb-2 px-1 border-l-4 border-brand-green ml-1">Welcome to Tribalveda</h2>
-            <h3 class="text-4xl md:text-5xl font-extrabold text-brand-purple leading-tight">
-              Honest Nutrition <br/>
-              <span class="text-gray-400">Pure Joy of Life</span>
-            </h3>
-            <p class="text-lg text-gray-600 leading-relaxed font-medium">
-              We started with a simple mission: to bridge the gap between pure tribal wisdom and modern wellness. Every product you buy directly impacts the lives of over 500 tribal women farmers.
-            </p>
-            
-            <div class="grid grid-cols-2 gap-6 pt-4">
-              <div class="flex items-start gap-4 p-4 rounded-brand bg-brand-lavender/50 border border-brand-purple/5">
-                <Leaf class="w-6 h-6 text-brand-green shrink-0" />
-                <div>
-                  <h4 class="font-bold text-brand-purple text-sm">Organically Grown</h4>
-                  <p class="text-xs text-gray-500 mt-1">Sourced from wild forests</p>
-                </div>
-              </div>
-              <div class="flex items-start gap-4 p-4 rounded-brand bg-brand-lavender/50 border border-brand-purple/5">
-                <ShieldCheck class="w-6 h-6 text-brand-green shrink-0" />
-                <div>
-                  <h4 class="font-bold text-brand-purple text-sm">Lab Tested</h4>
-                  <p class="text-xs text-gray-500 mt-1">100% Purity guaranteed</p>
-                </div>
-              </div>
-            </div>
-            
-            <NuxtLink to="/about">
-              <button class="flex items-center gap-3 font-bold text-brand-purple group border-b-2 border-brand-purple/10 py-2 hover:border-brand-purple transition-all">
-                Learn our unique processing <ArrowRight class="w-5 h-5 group-hover:translate-x-2 transition-transform" />
-              </button>
-            </NuxtLink>
-          </div>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 5. SHOP BY CONCERN -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-gray-50/70">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Curated For You</p>
+          <h2 class="text-4xl md:text-5xl font-black text-brand-purple">Shop By Concern</h2>
         </div>
-      </div>
-    </section>
 
-    <!-- Shop By Concern Section -->
-    <section class="py-24 bg-brand-lavender/50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="text-center mb-16 space-y-4">
-          <h2 class="text-sm font-black text-brand-green uppercase tracking-[0.3em]">Curated For You</h2>
-          <h3 class="text-4xl md:text-5xl font-extrabold text-brand-purple">Shop By Concern</h3>
-        </div>
-        
         <!-- Tabs -->
-        <div class="flex flex-wrap justify-center gap-4 md:gap-8 mb-16">
-          <button 
-            v-for="con in concerns" :key="con.id" 
-            @click="activeConcern = con.name"
-            :class="[
-              'px-8 py-4 rounded-brand-lg font-bold text-sm uppercase tracking-wider transition-all shadow-sm border flex items-center gap-3',
-              activeConcern === con.name 
-                ? 'bg-brand-purple text-white border-brand-purple shadow-brand-purple/20 -translate-y-1' 
-                : 'bg-white text-gray-500 border-gray-100 hover:bg-white hover:shadow-md'
-            ]"
+        <div class="flex flex-wrap justify-center gap-3 mb-12">
+          <button
+            v-for="c in concerns"
+            :key="c.id"
+            @click="activeConcern = c.id"
+            class="flex items-center gap-2 px-7 py-3 rounded-full font-bold text-sm transition-all border-2"
+            :class="activeConcern === c.id
+              ? 'bg-brand-purple text-white border-brand-purple shadow-lg shadow-brand-purple/20'
+              : 'bg-white text-gray-500 border-gray-200 hover:border-brand-purple/40'"
           >
-            <component :is="con.icon" class="w-5 h-5" />
-            {{ con.name }}
+            <component :is="c.icon" class="w-4 h-4" />
+            {{ c.name }}
           </button>
         </div>
 
-        <!-- Featured Products for Concern -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
-          <div v-for="product in featuredProducts.slice(0, 4)" :key="product.id" class="group bg-white rounded-brand-lg overflow-hidden border border-gray-100 shadow-brand hover-lift transition-all duration-500">
-            <NuxtLink :to="`/products/${product.id}`">
-              <div class="relative h-64 overflow-hidden">
-                <img :src="product.image" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="Product" />
-                <div class="absolute top-4 right-4 group-hover:rotate-12 transition-transform">
-                  <div class="bg-brand-green text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">New Arrival</div>
-                </div>
+        <!-- Product Grid -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-6">
+          <div
+            v-for="product in featuredProducts.slice(0, 4)"
+            :key="product._id"
+            class="group bg-white rounded-2xl overflow-hidden border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1.5 transition-all duration-400"
+          >
+            <NuxtLink :to="`/products/${product._id}`">
+              <div class="relative h-52 bg-brand-lavender/40 overflow-hidden">
+                <img :src="productStore.formatImageUrl(product.images?.[0])" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div class="absolute top-3 left-3 bg-brand-green text-white text-[9px] font-black uppercase tracking-widest px-3 py-1 rounded-full">Natural</div>
               </div>
             </NuxtLink>
-            <div class="p-6 space-y-4 text-center">
-              <div class="inline-flex gap-1">
-                <Star v-for="i in 5" :key="i" class="w-3 h-3 text-yellow-500 fill-current" />
-              </div>
-              <NuxtLink :to="`/products/${product.id}`">
-                <h4 class="font-bold text-brand-purple text-lg leading-tight group-hover:text-brand-green transition-colors">{{ product.name }}</h4>
+            <div class="p-5">
+              <p class="text-[10px] text-brand-green font-black uppercase tracking-widest mb-1">UNIQUE FLAVOURS</p>
+              <NuxtLink :to="`/products/${product._id}`">
+                <h4 class="font-bold text-brand-purple text-sm leading-snug mb-3 hover:text-brand-green transition-colors line-clamp-2">{{ product.name }}</h4>
               </NuxtLink>
-              <div class="flex items-center justify-center gap-4 border-t border-gray-50 pt-4">
-                <span class="text-2xl font-black text-brand-purple">₹{{ product.price }}</span>
-                <span class="text-xs font-bold text-gray-400 uppercase tracking-widest line-through">₹{{ Math.round(product.price * 1.4) }}</span>
+              <div class="flex items-center gap-1 mb-3">
+                <Star v-for="i in 5" :key="i" class="w-3 h-3 text-yellow-400 fill-current" />
               </div>
-              <button class="w-full bg-brand-lavender text-brand-purple font-bold py-3 rounded-brand text-xs uppercase tracking-widest group-hover:bg-brand-purple group-hover:text-white transition-all">
-                Add to Cart
-              </button>
+              <div class="flex items-center justify-between">
+                <span class="text-brand-purple font-black text-base">₹{{ product.price }}</span>
+                <button
+                  @click="handleAddToCart(product)"
+                  class="border-2 border-brand-purple text-brand-purple text-[10px] font-black uppercase px-4 py-2 rounded-full hover:bg-brand-purple hover:text-white transition-all"
+                >
+                  Quick Add
+                </button>
+              </div>
             </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Impact Ribbon -->
-    <section class="py-12 bg-brand-green overflow-hidden relative">
-      <div class="absolute inset-0 opacity-10 flex justify-center items-center pointer-events-none">
-        <Leaf class="w-[500px] h-[500px] text-white rotate-12" />
-      </div>
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-12 text-center text-white">
-          <div v-for="item in impactStats" :key="item.label" class="space-y-2 group">
-            <div class="w-16 h-16 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center mx-auto mb-4 group-hover:scale-110 transition-transform">
-              <component :is="item.icon" class="w-8 h-8" />
-            </div>
-            <h4 class="text-4xl font-extrabold">{{ item.current }}{{ item.suffix }}</h4>
-            <p class="text-xs font-bold uppercase tracking-[0.3em] opacity-80">{{ item.label }}</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Bestseller Section -->
-    <section class="py-24 bg-white relative">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-16">
-          <div class="space-y-4 max-w-xl">
-            <h2 class="text-sm font-black text-brand-green uppercase tracking-[0.3em]">Pure Indulgence</h2>
-            <h3 class="text-4xl md:text-5xl font-extrabold text-brand-purple">Shark's Bestseller Bundle</h3>
-            <p class="text-gray-600 font-medium">As seen on national TV! Our most loved collection of pure tribal delights that keep you healthy and energized.</p>
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 6. BESTSELLER SECTION -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="flex flex-col md:flex-row justify-between items-end gap-6 mb-12">
+          <div>
+            <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-2">Top Picks</p>
+            <h2 class="text-4xl md:text-5xl font-black text-brand-purple">
+              Unique Flavours<br />
+              <span class="text-brand-green">Bestsellers</span>
+            </h2>
+            <p class="text-gray-500 font-medium mt-3 max-w-md">Our most-loved collection of pure tribal fruit pulps — as voted by 2000+ customers.</p>
           </div>
           <NuxtLink to="/products">
-            <button class="group flex items-center gap-4 bg-brand-purple text-white pl-8 pr-2 py-2 rounded-full font-bold transition-all hover:bg-brand-purple-dark">
-              Explore All <span class="bg-white p-2 rounded-full text-brand-purple ml-2 group-hover:translate-x-1 transition-transform"><ArrowRight class="w-5 h-5" /></span>
+            <button class="flex items-center gap-3 bg-brand-purple text-white pl-7 pr-3 py-3 rounded-full font-bold transition-all hover:bg-brand-purple-dark group shrink-0">
+              View All Products
+              <span class="bg-white p-2 rounded-full text-brand-purple group-hover:translate-x-0.5 transition-transform">
+                <ArrowRight class="w-4 h-4" />
+              </span>
             </button>
           </NuxtLink>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-10">
-          <NuxtLink v-for="product in featuredProducts.slice(0, 3)" :key="product.id" :to="`/products/${product.id}`" class="group relative bg-brand-lavender/30 rounded-[40px] p-8 hover:bg-brand-purple/5 transition-all duration-500 overflow-hidden">
-            <div class="absolute -top-10 -right-10 w-40 h-40 bg-brand-purple/5 rounded-full scale-0 group-hover:scale-100 transition-transform duration-700"></div>
-            
-            <div class="relative space-y-6">
-              <div class="aspect-square rounded-brand-lg overflow-hidden shadow-xl ring-1 ring-black/5">
-                <img :src="product.image" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" />
-              </div>
-              <div class="space-y-2">
-                <h4 class="text-2xl font-extrabold text-brand-purple tracking-tight">{{ product.name }}</h4>
-                <p class="text-sm text-gray-500 line-clamp-2 font-medium">{{ product.description }}</p>
-              </div>
-              <div class="flex items-center justify-between pt-4">
-                <span class="text-3xl font-black text-brand-purple">₹{{ product.price }}</span>
-                <span class="text-xs font-bold text-brand-green uppercase tracking-widest bg-brand-green/10 px-4 py-2 rounded-full">{{ product.weight }}</span>
-              </div>
-            </div>
-          </NuxtLink>
-        </div>
-      </div>
-    </section>
-
-    <!-- Visual Story / Instagram Feed Placeholder -->
-    <section class="py-24 bg-gray-50">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 text-center mb-16 space-y-4">
-        <h2 class="text-sm font-black text-brand-green uppercase tracking-[0.3em]">Our Daily Journey</h2>
-        <h3 class="text-4xl font-extrabold text-brand-purple">Follow Our Tribal Story</h3>
-      </div>
-      <div class="flex gap-4 overflow-x-auto pb-8 no-scrollbar px-4 sm:px-10">
-        <div v-for="i in 5" :key="i" class="min-w-[280px] h-[500px] relative rounded-brand-lg overflow-hidden group shadow-lg">
-          <img src="https://images.unsplash.com/photo-1610832958506-aa56368176cf?auto=format&fit=crop&q=80&w=400" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-1000" />
-          <div class="absolute inset-0 bg-gradient-to-t from-brand-purple/80 via-transparent to-transparent flex flex-col justify-end p-6">
-            <div class="bg-white/20 backdrop-blur-md w-12 h-12 rounded-full flex items-center justify-center mb-4 group-hover:bg-brand-green transition-colors">
-              <Play class="w-6 h-6 text-white ml-1 fill-current" />
-            </div>
-            <h4 class="text-white font-bold text-sm">Farm to Wellness Episode {{ i }}</h4>
-            <p class="text-white/70 text-xs mt-1">12k Views • 2 days ago</p>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- Testimonials Section -->
-    <section class="py-24 bg-gray-50/50 relative overflow-hidden">
-      <!-- Decorative Background Elements -->
-      <div class="absolute top-0 right-0 w-96 h-96 bg-brand-lavender rounded-full blur-3xl opacity-50 -mr-48 -mt-48"></div>
-      <div class="absolute bottom-0 left-0 w-96 h-96 bg-brand-green/5 rounded-full blur-3xl opacity-50 -ml-48 -mb-48"></div>
-
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center mb-16 space-y-4">
-          <h2 class="text-sm font-black text-brand-green uppercase tracking-[0.3em]">Voices of our Tribe</h2>
-          <h3 class="text-4xl md:text-5xl font-extrabold text-brand-purple">Real Stories, Real Trust</h3>
-        </div>
-
-        <div class="relative max-w-5xl mx-auto">
-          <!-- Main Testimonial Card -->
-          <div class="bg-white rounded-[40px] md:rounded-[60px] shadow-2xl shadow-brand-purple/5 p-8 md:p-20 border border-brand-purple/5 relative overflow-hidden min-h-[450px] flex items-center justify-center">
-            
-            <!-- Floating Quote Icon -->
-            <div class="absolute top-10 left-10 text-brand-purple/5">
-              <svg class="w-20 h-20 md:w-32 md:h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z"/></svg>
-            </div>
-
-            <Transition name="fade" mode="out-in">
-              <div v-if="currentReview" :key="currentReviewIndex" class="relative z-10 w-full">
-                <div class="flex flex-col items-center text-center space-y-8 md:space-y-12">
-                  <!-- Rating -->
-                  <div class="flex gap-1.5">
-                    <Star v-for="i in 5" :key="i" :class="['w-5 h-5 md:w-6 md:h-6', i <= currentReview.rating ? 'text-yellow-400 fill-current' : 'text-gray-200']" />
-                  </div>
-                  
-                  <!-- Quote -->
-                  <blockquote class="text-xl md:text-3xl font-extrabold text-brand-purple leading-relaxed max-w-3xl mx-auto tracking-tight italic">
-                    "{{ currentReview.comment }}"
-                  </blockquote>
-                  
-                  <!-- Author -->
-                  <div class="flex flex-col items-center gap-4 pt-4">
-                    <div class="relative">
-                      <div class="absolute inset-0 bg-brand-green/20 rounded-full blur-lg"></div>
-                      <img :src="currentReview.image" class="relative w-24 h-24 rounded-full border-4 border-brand-lavender shadow-xl object-cover" :alt="currentReview.name" />
-                    </div>
-                    <div class="text-center">
-                      <h4 class="text-xl md:text-2xl font-black text-brand-purple">{{ currentReview.name }}</h4>
-                      <div class="flex items-center justify-center gap-2 mt-1">
-                        <span class="w-1.5 h-1.5 bg-brand-green rounded-full"></span>
-                        <p class="text-sm font-bold text-brand-green uppercase tracking-widest">{{ currentReview.location }}</p>
-                      </div>
-                    </div>
-                  </div>
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div
+            v-for="product in allProducts.slice(0, 4)"
+            :key="product._id"
+            class="group bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl overflow-hidden transition-all duration-400 hover:-translate-y-1"
+          >
+            <NuxtLink :to="`/products/${product._id}`">
+              <div class="relative h-52 bg-brand-lavender/40 overflow-hidden">
+                <img :src="productStore.formatImageUrl(product.images?.[0])" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+                <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/30 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                  <p class="text-white text-xs font-bold text-center">View Details →</p>
                 </div>
               </div>
-            </Transition>
-          </div>
-
-          <!-- Discrete Navigation Buttons -->
-          <div class="absolute top-1/2 -translate-y-1/2 -left-4 md:-left-8 z-20">
-            <button @click="prevReview" class="w-14 h-14 rounded-full bg-white shadow-xl border border-gray-50 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition-all transform hover:scale-110 active:scale-95 group">
-              <ChevronLeft class="w-6 h-6 group-hover:-translate-x-0.5 transition-transform" />
-            </button>
-          </div>
-          <div class="absolute top-1/2 -translate-y-1/2 -right-4 md:-right-8 z-20">
-            <button @click="nextReview" class="w-14 h-14 rounded-full bg-white shadow-xl border border-gray-50 flex items-center justify-center text-brand-purple hover:bg-brand-purple hover:text-white transition-all transform hover:scale-110 active:scale-95 group">
-              <ChevronRight class="w-6 h-6 group-hover:translate-x-0.5 transition-transform" />
-            </button>
-          </div>
-
-          <!-- Pagination Progress Dots -->
-          <div class="flex justify-center gap-3 mt-12">
-            <button 
-              v-for="(_, i) in reviews" 
-              :key="i" 
-              @click="currentReviewIndex = i"
-              class="relative h-2 rounded-full transition-all duration-500 overflow-hidden"
-              :class="currentReviewIndex === i ? 'w-12 bg-brand-purple' : 'w-2 bg-gray-200 hover:bg-brand-purple/30'"
-            >
-              <div 
-                v-if="currentReviewIndex === i"
-                class="absolute inset-0 bg-brand-green/50 animate-progress-mini"
-              ></div>
-            </button>
+            </NuxtLink>
+            <div class="p-5 text-center">
+              <NuxtLink :to="`/products/${product._id}`">
+                <h4 class="font-bold text-brand-purple text-sm leading-snug mb-2 hover:text-brand-green transition-colors line-clamp-2">{{ product.name }}</h4>
+              </NuxtLink>
+              <p class="text-brand-purple font-black text-lg mb-3">₹{{ product.price }}</p>
+              <button
+                @click="handleAddToCart(product)"
+                class="w-full border-2 border-brand-purple/30 text-brand-purple text-[10px] font-black uppercase py-2.5 rounded-full hover:bg-brand-purple hover:text-white hover:border-brand-purple transition-all tracking-widest"
+              >
+                Buy Now
+              </button>
+            </div>
           </div>
         </div>
       </div>
     </section>
 
-    <!-- Final CTA Section -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 7. IMPACT STATS RIBBON -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-16 bg-brand-purple relative overflow-hidden">
+      <div class="absolute inset-0 opacity-10">
+        <Leaf class="w-[600px] h-[600px] text-white absolute -right-32 -top-32 rotate-12" />
+      </div>
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center text-white">
+          <div v-for="stat in impactStats" :key="stat.label" class="space-y-2 p-6 rounded-2xl bg-white/5 hover:bg-white/10 transition-all">
+            <div class="w-14 h-14 bg-white text-brand-purple rounded-2xl flex items-center justify-center mx-auto mb-3 shadow-lg">
+              <component :is="stat.icon" class="w-7 h-7" />
+            </div>
+            <h3 class="text-4xl md:text-5xl font-black tracking-tight">{{ stat.current }}{{ stat.suffix }}</h3>
+            <p class="text-white/60 text-xs font-black uppercase tracking-widest">{{ stat.label }}</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 8. WHY OUR FRUITS ARE A SUPERFOOD -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-6xl mx-auto px-6 text-center">
+        <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Science-Backed Benefits</p>
+        <h2 class="text-4xl md:text-5xl font-black text-brand-purple mb-4">Why Our Fruits Are a Superfood</h2>
+        <p class="text-gray-500 font-medium text-lg max-w-2xl mx-auto mb-12">
+          These vibrant forest gems aren't just delicious — they're nutritional powerhouses with benefits that go beyond basic nutrition.
+        </p>
+
+        <!-- Benefit Pills -->
+        <div class="flex flex-wrap justify-center gap-3">
+          <span
+            v-for="benefit in benefits"
+            :key="benefit"
+            class="px-5 py-2.5 rounded-full border-2 border-brand-purple/20 text-brand-purple text-sm font-bold hover:bg-brand-purple hover:text-white hover:border-brand-purple transition-all cursor-default"
+          >
+            {{ benefit }}
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 9. PRODUCT CATEGORY SPOTLIGHT: WELLNESS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Category Spotlight</p>
+          <h2 class="text-4xl font-black text-brand-purple">Wellness Essentials</h2>
+          <p class="text-gray-500 font-medium mt-2">Discover the essence of wellness from nature's finest produce</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-5">
+          <div
+            v-for="product in featuredProducts.slice(0, 4)"
+            :key="`w-${product._id}`"
+            class="group relative bg-brand-lavender/30 rounded-2xl overflow-hidden border border-brand-purple/5 hover:shadow-xl transition-all duration-400 hover:-translate-y-1"
+          >
+            <div class="h-56 overflow-hidden">
+              <img :src="productStore.formatImageUrl(product.images?.[0])" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" />
+            </div>
+            <div class="p-5">
+              <p class="text-[10px] text-brand-green font-black uppercase tracking-widest mb-1">UNIQUE FLAVOURS</p>
+              <h4 class="font-bold text-brand-purple text-sm mb-2 line-clamp-2">{{ product.name }}</h4>
+              <p class="text-brand-purple font-black text-base mb-4">₹{{ product.price }}</p>
+              <button
+                @click="handleAddToCart(product)"
+                class="w-full border-2 border-brand-purple text-brand-purple text-[10px] font-black uppercase py-2.5 rounded-full hover:bg-brand-purple hover:text-white transition-all tracking-widest"
+              >
+                Buy Now
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div class="text-center mt-10">
+          <NuxtLink to="/products">
+            <button class="bg-brand-purple text-white px-10 py-4 rounded-full font-bold hover:bg-brand-purple-dark transition-all shadow-lg">
+              Shop More →
+            </button>
+          </NuxtLink>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 10. INSIDER STORIES / GALLERY -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-gray-50">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="text-center mb-12">
+          <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Behind the Scenes</p>
+          <h2 class="text-4xl font-black text-brand-purple">The Unique Flavours <span class="text-brand-green">Story</span></h2>
+          <p class="text-gray-500 font-medium mt-2 max-w-xl mx-auto">A behind-the-scenes look at our harvesting process and the tribal communities making it possible.</p>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div
+            v-for="(img, idx) in storyImages"
+            :key="idx"
+            class="group relative rounded-2xl overflow-hidden aspect-[3/4] shadow-md hover:shadow-2xl transition-all duration-500"
+          >
+            <img :src="img" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
+            <div class="absolute inset-0 bg-gradient-to-t from-brand-purple/80 via-transparent to-transparent flex flex-col justify-end p-5">
+              <div class="bg-white/20 backdrop-blur-md w-10 h-10 rounded-full flex items-center justify-center mb-3 group-hover:bg-brand-green transition-colors">
+                <Play class="w-5 h-5 text-white ml-0.5 fill-current" />
+              </div>
+              <h4 class="text-white font-bold text-xs">Farm to Table — Episode {{ idx + 1 }}</h4>
+              <p class="text-white/60 text-[10px] mt-0.5">Tribal harvest story</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 11. COMMUNITY SECTION -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-white">
+      <div class="max-w-7xl mx-auto px-6 lg:px-8">
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+          <!-- Left: Mission Content -->
+          <div class="space-y-5">
+            <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em]">Our Mission</p>
+            <h2 class="text-4xl md:text-5xl font-black text-brand-purple leading-tight">
+              Our Community,<br />
+              <span class="text-brand-green">Our Purpose</span>
+            </h2>
+
+            <!-- Green intro card -->
+            <div class="bg-brand-green/10 border border-brand-green/20 rounded-2xl p-6">
+              <p class="text-brand-green font-bold text-sm leading-relaxed">
+                At Unique Flavours, community wellbeing is at the heart of all we do. Our mission goes beyond business — we strive to uplift tribal and rural communities by creating sustainable livelihoods and nurturing the environment.
+              </p>
+            </div>
+
+            <!-- Mission points card -->
+            <div class="bg-brand-lavender rounded-2xl p-6 space-y-3">
+              <div v-for="(point, i) in [
+                'Empowering tribal women through local employment',
+                'Promoting health through organic fruit-based nutrition',
+                'Creating sustainable livelihood in remote villages',
+                'Connecting farm produce directly to consumers',
+                'Uplifting local economy with ethical practices',
+              ]" :key="i" class="flex items-start gap-3">
+                <Star class="w-4 h-4 text-brand-green fill-brand-green/20 shrink-0 mt-0.5" stroke-width="1.75" />
+                <p class="text-brand-purple font-semibold text-sm">{{ point }}</p>
+              </div>
+            </div>
+
+            <!-- Closing card -->
+            <div class="bg-brand-green/10 border border-brand-green/20 rounded-2xl p-5">
+              <p class="text-gray-600 font-medium text-sm leading-relaxed">
+                Through a holistic approach, Unique Flavours has become a catalyst for positive change in the heartlands of India — connecting nature's bounty with modern homes.
+              </p>
+            </div>
+          </div>
+
+          <!-- Right: Image -->
+          <div class="relative">
+            <div class="rounded-3xl overflow-hidden shadow-2xl aspect-[4/5]">
+              <img
+                src="/images/WhatsApp Image 2026-03-26 at 10.39.11 PM.jpeg"
+                class="w-full h-full object-cover"
+                alt="Our Community"
+              />
+            </div>
+            <!-- Floating stats badges -->
+            <div class="absolute -bottom-6 -left-6 bg-white rounded-2xl shadow-xl px-6 py-4 border border-gray-100">
+              <p class="text-brand-purple font-black text-2xl">500+</p>
+              <p class="text-gray-500 text-xs font-bold uppercase tracking-wider">Tribal Farmers</p>
+            </div>
+            <div class="absolute -top-6 -right-6 bg-brand-green rounded-2xl shadow-xl px-6 py-4">
+              <p class="text-white font-black text-2xl">15M+</p>
+              <p class="text-white/80 text-xs font-bold uppercase tracking-wider">Trees Saved</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 12. CUSTOMER REVIEWS -->
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <section class="py-20 bg-gray-50 relative overflow-hidden">
+      <div class="absolute top-0 right-0 w-72 h-72 bg-brand-lavender rounded-full blur-3xl opacity-60 -mr-36 -mt-36" />
+      <div class="max-w-7xl mx-auto px-6 lg:px-8 relative z-10">
+        <div class="text-center mb-12">
+          <p class="text-brand-green text-xs font-black uppercase tracking-[0.3em] mb-3">Voices of Our Tribe</p>
+          <h2 class="text-4xl md:text-5xl font-black text-brand-purple">Let Customers Speak For Us</h2>
+          <div class="flex items-center justify-center gap-2 mt-4">
+            <div class="flex gap-0.5">
+              <Star v-for="i in 5" :key="i" class="w-5 h-5 text-yellow-400 fill-current" />
+            </div>
+            <span class="text-gray-500 font-semibold text-sm">from 2,000+ reviews</span>
+          </div>
+        </div>
+
+        <!-- Review Cards Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
+          <div
+            v-for="review in reviews"
+            :key="review.id"
+            class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 hover:shadow-xl transition-all duration-300 hover:-translate-y-1 relative"
+          >
+            <Quote class="w-8 h-8 text-brand-purple/10 absolute top-4 right-4" />
+            <div class="flex gap-0.5 mb-4">
+              <Star v-for="i in review.rating" :key="i" class="w-4 h-4 text-yellow-400 fill-current" />
+            </div>
+            <p class="text-gray-600 text-sm font-medium leading-relaxed mb-5 line-clamp-4">
+              "{{ review.comment }}"
+            </p>
+            <div class="flex items-center gap-3 pt-4 border-t border-gray-50">
+              <img :src="review.image" class="w-10 h-10 rounded-full object-cover border-2 border-brand-lavender" :alt="review.name" />
+              <div>
+                <p class="font-black text-brand-purple text-sm">{{ review.name }}</p>
+                <p class="text-brand-green text-[10px] font-bold uppercase tracking-widest">{{ review.location }}</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══════════════════════════════════════════════════════ -->
+    <!-- 13. FINAL CTA -->
+    <!-- ═══════════════════════════════════════════════════════ -->
     <section class="py-24 relative bg-brand-purple overflow-hidden">
-      <!-- Decorative Elements -->
-      <div class="absolute top-1/2 left-0 -translate-y-1/2 w-[600px] h-[600px] bg-brand-green/20 rounded-full blur-[120px] -ml-96"></div>
-      <div class="absolute bottom-0 right-0 w-[600px] h-[600px] bg-brand-purple-light/20 rounded-full blur-[120px] -mr-96 -mb-96"></div>
-      
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div class="text-center space-y-10 max-w-3xl mx-auto">
-          <div class="w-20 h-20 bg-brand-green rounded-3xl rotate-12 flex items-center justify-center mx-auto shadow-2xl">
-            <Leaf class="w-10 h-10 text-white" />
-          </div>
-          <h2 class="text-4xl md:text-6xl font-black text-white leading-tight">
-            Ready to taste <br /> 
-            <span class="text-brand-green underline decoration-wavy underline-offset-8">pure perfection?</span>
-          </h2>
-          <p class="text-xl text-brand-lavender/80 font-medium">
-            Join thousands of health-conscious Indians choosing Tribalveda. Get your first immunity bundle with free delivery today.
-          </p>
-          <div class="flex flex-col sm:flex-row items-center justify-center gap-6 pt-6">
-            <NuxtLink to="/products">
-              <button class="bg-white hover:bg-gray-100 text-brand-purple px-12 py-5 rounded-brand-lg font-black text-lg shadow-2xl active:scale-95 transition-all">
-                Shop Current Offers
-              </button>
-            </NuxtLink>
-            <NuxtLink to="/contact">
-              <button class="bg-transparent border-2 border-white/20 hover:border-white text-white px-10 py-5 rounded-brand-lg font-black text-lg hover:bg-white/5 transition-all">
-                Contact Our Team
-              </button>
-            </NuxtLink>
-          </div>
-          <div class="pt-6 flex items-center justify-center gap-8 border-t border-white/10 text-white/60 text-xs font-bold uppercase tracking-widest">
-            <span class="flex items-center gap-2 px-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> FSAAI Certified</span>
-            <span class="flex items-center gap-2 px-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> 100% Secure Checkout</span>
-            <span class="flex items-center gap-2 px-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> Easy Returns</span>
-          </div>
+      <div class="absolute top-1/2 left-0 -translate-y-1/2 w-[500px] h-[500px] bg-brand-green/20 rounded-full blur-[120px] -ml-80" />
+      <div class="absolute bottom-0 right-0 w-[500px] h-[500px] bg-white/5 rounded-full blur-[80px] -mr-80 -mb-80" />
+
+      <div class="max-w-4xl mx-auto px-6 relative z-10 text-center">
+        <div class="w-20 h-20 bg-brand-green rounded-3xl rotate-12 flex items-center justify-center mx-auto mb-8 shadow-2xl">
+          <Leaf class="w-10 h-10 text-white" />
+        </div>
+        <h2 class="text-5xl md:text-6xl font-black text-white leading-tight mb-6">
+          Ready to Taste<br />
+          <span class="text-brand-green underline decoration-wavy underline-offset-8">Pure Perfection?</span>
+        </h2>
+        <p class="text-xl text-white/70 font-medium mb-10 max-w-2xl mx-auto">
+          Join thousands of health-conscious families choosing Unique Flavours. Get your first bundle with free delivery today.
+        </p>
+        <div class="flex flex-col sm:flex-row items-center justify-center gap-4 mb-10">
+          <NuxtLink to="/products">
+            <button class="bg-white hover:bg-gray-50 text-brand-purple px-12 py-5 rounded-full font-black text-lg shadow-2xl active:scale-95 transition-all">
+              Shop Current Offers
+            </button>
+          </NuxtLink>
+          <NuxtLink to="/contact">
+            <button class="bg-transparent border-2 border-white/30 hover:border-white text-white px-10 py-5 rounded-full font-bold text-lg hover:bg-white/5 transition-all">
+              Contact Our Team
+            </button>
+          </NuxtLink>
+        </div>
+        <div class="flex flex-wrap items-center justify-center gap-6 text-white/50 text-xs font-black uppercase tracking-widest border-t border-white/10 pt-8">
+          <span class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> FSSAI Certified</span>
+          <span class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> 100% Secure Checkout</span>
+          <span class="flex items-center gap-2"><CheckCircle2 class="w-4 h-4 text-brand-green" /> Easy Returns</span>
         </div>
       </div>
     </section>
+
   </div>
 </template>
 
 <style scoped>
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.5s ease;
+/* Hero Transition */
+.hero-fade-enter-active,
+.hero-fade-leave-active {
+  transition: opacity 0.8s ease;
 }
-
-.fade-enter-from,
-.fade-leave-to {
+.hero-fade-enter-from,
+.hero-fade-leave-to {
   opacity: 0;
 }
 
-@keyframes progress-mini {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(0); }
+/* Marquee */
+@keyframes marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
 }
-.animate-progress-mini {
-  animation: progress-mini 3s linear infinite;
+.animate-marquee {
+  animation: marquee 30s linear infinite;
+}
+.animate-marquee:hover {
+  animation-play-state: paused;
 }
 </style>
-

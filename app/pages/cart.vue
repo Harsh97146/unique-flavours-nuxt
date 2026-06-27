@@ -1,11 +1,37 @@
 <script setup lang="ts">
 import { Trash2, Plus, Minus, ShoppingBag, ArrowLeft } from 'lucide-vue-next'
 import { useCartStore } from '~/stores/cart'
+import { useProductStore } from '~/stores/products'
+import { useAuthStore } from '~/stores/auth'
 
 useHead({ title: 'Shopping Cart - Unique Flavours' })
 
 const cart = useCartStore()
+const productStore = useProductStore()
+const auth = useAuthStore()
+const route = useRoute()
 const total = computed(() => cart.totalPrice)
+
+const showCheckoutModal = ref(false)
+
+onMounted(() => {
+  if (route.query.checkout === 'true' && cart.items.length > 0 && auth.token) {
+    showCheckoutModal.value = true
+  }
+})
+
+const handleCheckout = async () => {
+  if (!auth.token) {
+    await auth.fetchUser()
+  }
+  if (!auth.token) {
+    auth.modalMode = 'login'
+    auth.showLoginModal = true
+    return
+  }
+  if (cart.items.length === 0) return
+  showCheckoutModal.value = true
+}
 </script>
 
 <template>
@@ -40,31 +66,30 @@ const total = computed(() => cart.totalPrice)
         <div class="grid lg:grid-cols-3 gap-8">
           <!-- Cart Items -->
           <div class="lg:col-span-2 space-y-4">
-            <div v-for="item in cart.items" :key="item.product.id" class="bg-white rounded-xl shadow-md p-6">
+            <div v-for="item in cart.items" :key="item.product._id" class="bg-white rounded-xl shadow-md p-6">
               <div class="flex gap-6">
                 <div class="w-32 h-32 flex-shrink-0">
-                  <img :src="item.product.image" :alt="item.product.name" class="w-full h-full object-cover rounded-lg" />
+                  <img :src="productStore.formatImageUrl(item.product.images?.[0])" :alt="item.product.name" class="w-full h-full object-cover rounded-lg" />
                 </div>
                 <div class="flex-1">
                   <div class="flex justify-between items-start mb-2">
                     <div>
-                      <NuxtLink :to="`/products/${item.product.id}`">
+                      <NuxtLink :to="`/products/${item.product._id}`">
                         <h3 class="text-xl font-bold text-gray-900 hover:text-purple-700 transition-colors">{{ item.product.name }}</h3>
                       </NuxtLink>
-                      <p class="text-sm text-gray-600 mt-1">{{ item.product.weight }}</p>
                       <p class="text-sm text-green-600 font-medium mt-1">{{ item.product.category }}</p>
                     </div>
-                    <button @click="cart.removeFromCart(item.product.id)" class="text-red-600 hover:text-red-700 transition-colors" title="Remove">
+                    <button @click="cart.removeFromCart(item.product._id)" class="text-red-600 hover:text-red-700 transition-colors" title="Remove">
                       <Trash2 class="w-5 h-5" />
                     </button>
                   </div>
                   <div class="flex items-center justify-between mt-4">
                     <div class="flex items-center gap-3 bg-gray-100 rounded-lg p-1">
-                      <button @click="cart.updateQuantity(item.product.id, item.quantity - 1)" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white transition-colors">
+                      <button @click="cart.updateQuantity(item.product._id, item.quantity - 1)" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white transition-colors">
                         <Minus class="w-4 h-4" />
                       </button>
                       <span class="text-lg font-semibold w-8 text-center">{{ item.quantity }}</span>
-                      <button @click="cart.updateQuantity(item.product.id, item.quantity + 1)" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white transition-colors">
+                      <button @click="cart.updateQuantity(item.product._id, item.quantity + 1)" class="w-8 h-8 flex items-center justify-center rounded-md hover:bg-white transition-colors">
                         <Plus class="w-4 h-4" />
                       </button>
                     </div>
@@ -86,9 +111,7 @@ const total = computed(() => cart.totalPrice)
                 <div class="flex justify-between text-gray-600">
                   <span>Subtotal</span><span class="font-semibold">₹{{ cart.totalPrice }}</span>
                 </div>
-                <div class="flex justify-between text-gray-600">
-                  <span>Delivery</span><span class="font-semibold text-green-600">FREE</span>
-                </div>
+
                 <div class="border-t pt-4">
                   <div class="flex justify-between items-center">
                     <span class="text-lg font-semibold text-gray-900">Total</span>
@@ -97,17 +120,13 @@ const total = computed(() => cart.totalPrice)
                   <p class="text-xs text-gray-500 mt-1">Inclusive of all taxes</p>
                 </div>
               </div>
-              <button class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors mb-4">Proceed to Checkout</button>
+              <button @click="handleCheckout" class="w-full bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold text-lg transition-colors mb-4">Proceed to Checkout</button>
               <NuxtLink to="/products">
                 <button class="w-full border-2 border-purple-700 text-purple-700 hover:bg-purple-50 py-3 rounded-lg font-semibold transition-colors">Continue Shopping</button>
               </NuxtLink>
 
-              <div class="mt-6 bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p class="text-sm text-yellow-800"><strong>Delivery:</strong> Available in Mumbai only. Delivered in 24-48 hours.</p>
-              </div>
               <div class="mt-6 space-y-3">
                 <div class="flex items-start gap-3"><div class="w-2 h-2 bg-green-600 rounded-full mt-2"></div><p class="text-sm text-gray-600">100% Natural - No added sugar or preservatives</p></div>
-                <div class="flex items-start gap-3"><div class="w-2 h-2 bg-green-600 rounded-full mt-2"></div><p class="text-sm text-gray-600">Free delivery on all orders</p></div>
                 <div class="flex items-start gap-3"><div class="w-2 h-2 bg-green-600 rounded-full mt-2"></div><p class="text-sm text-gray-600">Supporting tribal women farmers</p></div>
               </div>
             </div>
@@ -115,5 +134,7 @@ const total = computed(() => cart.totalPrice)
         </div>
       </div>
     </template>
+
+    <CheckoutModal :show="showCheckoutModal" @close="showCheckoutModal = false" />
   </div>
 </template>

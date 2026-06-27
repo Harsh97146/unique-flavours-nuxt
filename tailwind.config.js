@@ -25,7 +25,7 @@ export default {
         },
       },
       fontFamily: {
-        sans: ['Montserrat', 'Inter', 'sans-serif'],
+        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       borderRadius: {
         'brand': '15px',

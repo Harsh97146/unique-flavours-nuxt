@@ -5,8 +5,10 @@ useHead({ title: 'Contact - Unique Flavours' })
 
 const formData = reactive({ name: '', email: '', phone: '', subject: '', message: '' })
 
+const { $swal }: any = useNuxtApp()
+
 const handleSubmit = () => {
-  alert("Thank you for your message! We'll get back to you soon.")
+  $swal.toast('Message sent', 'success', "We'll get back to you soon.")
   Object.assign(formData, { name: '', email: '', phone: '', subject: '', message: '' })
 }
 </script>
@@ -35,7 +37,7 @@ const handleSubmit = () => {
               </div>
               <div>
                 <h3 class="font-semibold text-gray-900 mb-1">Email</h3>
-                <p class="text-gray-600">contact@tribalveda.com</p>
+                <p class="text-gray-600">contact@uniqueflavours.com</p>
               </div>
             </div>
             <div class="flex gap-4">

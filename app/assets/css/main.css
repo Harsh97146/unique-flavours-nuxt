@@ -1,8 +1,8 @@
-@import url('https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
 /* Basic resets and base styles */
 html {
-  font-family: 'Montserrat', sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
   scroll-behavior: smooth;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -29,4 +29,60 @@ a, button, input {
 /* Hover effects for cards */
 .hover-lift {
   @apply hover:-translate-y-1 hover:shadow-brand-hover transition-all duration-300;
+}
+
+/* User panel — shared dropdown, profile & account UI */
+.user-panel {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  letter-spacing: -0.01em;
+}
+
+.user-panel-icon {
+  @apply w-8 h-8 rounded-lg flex items-center justify-center shrink-0;
+}
+
+.user-panel-icon svg {
+  @apply w-4 h-4;
+}
+
+/* SweetAlert2 — professional toast & dialog styling */
+.swal2-popup.uf-toast {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  padding: 0.75rem 1rem !important;
+  border-radius: 12px !important;
+  box-shadow: 0 8px 24px rgba(80, 38, 124, 0.12) !important;
+  border: 1px solid rgba(0, 0, 0, 0.06) !important;
+  min-width: 280px;
+}
+
+.swal2-popup.uf-toast .uf-toast-title {
+  font-size: 0.875rem !important;
+  font-weight: 600 !important;
+  color: #111827 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-popup.uf-toast .uf-toast-text {
+  font-size: 0.75rem !important;
+  font-weight: 400 !important;
+  color: #6B7280 !important;
+  margin: 0.25rem 0 0 !important;
+  padding: 0 !important;
+}
+
+.swal2-popup.uf-toast .swal2-icon {
+  width: 1.5rem !important;
+  height: 1.5rem !important;
+  margin: 0 0.625rem 0 0 !important;
+  border-width: 2px !important;
+}
+
+.swal2-popup.uf-toast .uf-toast-progress {
+  background: #50267C !important;
+}
+
+.swal2-popup.uf-dialog {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+  border-radius: 16px !important;
 }
